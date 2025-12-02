@@ -36,20 +36,31 @@ parser = argparse.ArgumentParser()
 parser.add_argument('f')
 args = parser.parse_args()
 videoFilename = args.f
-sampleCount = 200
 
 # figure out metadata
 probe = ffmpeg.probe(videoFilename)
 video_info = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
 width = int(video_info['width'])
 height = int(video_info['height'])
-duration = int(float(probe['format']['duration']) * 1000)
+
+try:
+	duration = int(float(probe['format']['duration']) * 1000)
+except:
+	duration = 0
+
 print('Original resolution: {:d}x{:d}'.format(width, height))
 videoShape = [width, height]
 videoRatio = width / height
 
 # extract random frames
-timestamps = random.choices(range(duration-100), k=sampleCount)
+if duration > 100:
+	frame_range = range(duration-100)
+	sampleCount = 200
+else:
+	frame_range = range(1)
+	sampleCount = 1
+
+timestamps = random.choices(frame_range, k=sampleCount)
 xCurves = [0,]*sampleCount
 yCurves = [0,]*sampleCount
 print('Sampling random frames from the video...')
